@@ -40,8 +40,6 @@ Thumbs.db
 *.m3u
 *.m3u8
 playlist.*
-working_portals.json
-POLSKA_HITY.txt
 
 # Logs
 *.log

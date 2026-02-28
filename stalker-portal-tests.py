@@ -12,8 +12,8 @@ init(autoreset=True)
 
 # Konfiguracja
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-INPUT_FILE = os.path.join(SCRIPT_DIR, "portals.json")
-OUTPUT_FILE = os.path.join(SCRIPT_DIR, "working_portals.json")
+INPUT_FILE = os.path.join(SCRIPT_DIR, "data/portals.json")
+OUTPUT_FILE = os.path.join(SCRIPT_DIR, "data/working_portals.json")
 TIMEOUT = 15  # Czas oczekiwania na odpowiedź w sekundach
 MAX_THREADS = 3  # Liczba jednoczesnych połączeń
 TEST_ONLY_POLISH = True  # Testuj tylko portale z polskimi kanałami
