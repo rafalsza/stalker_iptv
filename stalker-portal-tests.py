@@ -328,7 +328,7 @@ def main():
     # --- GENEROWANIE LISTY POLSKA_HITY.txt (PO testowaniu strumieni) ---
     polska_list = [p for p in working_portals if isinstance(p["info"], dict) and p["info"].get("has_pl")]
     if polska_list:
-        with open(os.path.join(SCRIPT_DIR, "POLSKA_HITY.txt"), "w", encoding="utf-8") as f:
+        with open(os.path.join(SCRIPT_DIR, "data/POLSKA_HITY.txt"), "w", encoding="utf-8") as f:
             f.write("=== DZIAŁAJĄCE PORTALE Z POLSKIMI KANAŁAMI ===\n\n")
             for p in polska_list:
                 f.write(f"URL: {p['url']}\nMAC: {p['mac']}\nINFO: {p['info'].get('summary')}\n")
