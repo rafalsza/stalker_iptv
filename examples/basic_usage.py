@@ -52,14 +52,7 @@ def main():
         
         if is_working:
             print("   [OK] Portal działa poprawnie")
-            
-            # Generowanie M3U
-            print("\n5. Generowanie playlisty M3U...")
-            m3u_content = converter.generate_m3u(channels)
-            
-            with open("playlist.m3u", "w", encoding="utf-8") as f:
-                f.write(m3u_content)
-            print("   [OK] Playlista zapisana jako playlist.m3u")
+            print("   [INFO] Funkcja generowania M3U została usunięta")
         else:
             print("   [FAIL] Portal nie przeszedł testu strumieni")
     else:

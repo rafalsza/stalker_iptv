@@ -7,7 +7,6 @@ Narzędzie do testowania i weryfikacji portalów IPTV opartych na oprogramowaniu
 - **Testowanie portalów Stalker IPTV**: Automatyczne sprawdzanie dostępności portali
 - **Weryfikacja kanałów**: Pobieranie i testowanie rzeczywistych strumieni
 - **Filtrowanie polskich kanałów**: Identyfikacja portali z polską zawartością
-- **Konwersja do M3U**: Generowanie list odtwarzania M3U
 - **Testy strumieni**: Weryfikacja jakości działania strumieni
 
 ## Struktura projektu
@@ -21,7 +20,7 @@ stalker_iptv/
 ├── data/                    # Dane wejściowe i wyjściowe
 │   ├── portals.json        # Lista portali do testowania
 │   ├── working_portals.json # Zweryfikowane portale
-│   └── POLSKA_HITY.txt     # Lista portali z polskimi kanałami
+│   └── POLISH_HITS.txt     # Lista portali z polskimi kanałami
 └── examples/               # Przykłady użycia
 ```
 
@@ -41,7 +40,7 @@ pip install -r requirements.txt
 ### Testowanie portali
 
 ```python
-from stalker_test import StalkerToM3U
+from stalker_iptv import StalkerToM3U
 
 # Inicjalizacja
 converter = StalkerToM3U("http://portal.example.com/c/", "00:1A:79:XX:XX:XX")
@@ -62,12 +61,7 @@ python stalker-portal-tests.py
 
 ### Generowanie listy M3U
 
-```python
-# Konwersja do M3U
-m3u_content = converter.generate_m3u(channels)
-with open("playlist.m3u", "w") as f:
-    f.write(m3u_content)
-```
+Funkcja generowania M3U została usunięta z biblioteki.
 
 ## Format danych
 
@@ -121,11 +115,24 @@ TEST_ONLY_POLISH = True  # Testuj tylko portale z polskimi kanałami
 ```
 --- Stalker Portal Tester ---
 
-[HIT] [PL!] http://portal.example.com/c/ | ACTIVE | PL: TAK | Exp: 2024-12-31
-[HIT] [NO-PL] http://portal2.example.com/c/ | ACTIVE | PL: NIE | Exp: 2024-12-31
+FILTER MODE: Testing only portals with Polish channels
 
-=== ZAKOŃCZONO TESTOWANIE PORTALI ===
-Znaleziono 2 działających portali
+=> Testing streams...
+  Found 1500 channels
+  Testowanie 3 polskich kanałów...
+  Wynik testu: 2/3 kanałów działa (66.7%)
+  [OK] Portal works correctly
+[HIT] [PL!] http://portal.example.com/c/ | ACTIVE | PL: TAK | Exp: 2024-12-31
+
+=> Testing streams...
+  Found 800 channels
+  Testowanie 3 polskich kanałów...
+  Wynik testu: 1/3 kanałów działa (33.3%)
+  [FAIL] Portal failed stream test
+
+=== PORTAL TESTING COMPLETED ===
+Found 1 working portals (with immediate stream testing)
+Saved to: data/working_portals.json
 ```
 
 ## Licencja
