@@ -64,19 +64,19 @@ class StalkerToM3U:
     def _parse_channels_from_response(self, data):
         """Extract channels list from API response data"""
         all_channels = data.get("js", {})
-        
+
         # Handle different response structures
         if isinstance(all_channels, dict):
             all_channels = self._extract_channels_from_dict(all_channels)
         elif isinstance(all_channels, str):
             all_channels = self._parse_json_string(all_channels)
-        
+
         # Fallback to other data structures
         if not isinstance(all_channels, list):
             all_channels = self._fallback_channel_extraction(data)
-            
+
         return all_channels if isinstance(all_channels, list) else []
-    
+
     def _extract_channels_from_dict(self, data_dict):
         """Extract channels from dictionary response"""
         channels_from_dict = []
@@ -84,33 +84,33 @@ class StalkerToM3U:
             if isinstance(value, list):
                 channels_from_dict.extend(value)
         return channels_from_dict
-    
+
     def _parse_json_string(self, json_str):
         """Parse JSON string to extract channels"""
         try:
             return json.loads(json_str)
         except (json.JSONDecodeError, TypeError):
             return []
-    
+
     def _fallback_channel_extraction(self, data):
         """Try alternative data locations for channels"""
         if isinstance(data, list):
             return data
-        
+
         # Check common channel keys
         for key in ["data", "channels"]:
             if key in data:
                 return data[key]
-        
+
         print(f"Błąd: oczekiwano listy kanałów, otrzymano: {type(data)}")
         print(f"Debug - struktura odpowiedzi: {list(data.keys()) if isinstance(data, dict) else 'nie jest słownikiem'}")
         return []
-    
+
     def _process_channel_data(self, channel):
         """Process individual channel data and extract stream info"""
         if not isinstance(channel, dict):
             return None
-        
+
         channel_info = {
             "id": channel.get("id"),
             "name": channel.get("name", ""),
@@ -118,14 +118,14 @@ class StalkerToM3U:
             "logo": channel.get("logo", ""),
             "cmd": channel.get("cmd", ""),
         }
-        
+
         cmd = channel.get("cmd", "")
         if cmd and "ffmpeg http" in cmd:
             channel_info["url"] = self._process_ffmpeg_command(cmd)
             return channel_info
-        
+
         return None
-    
+
     def _process_ffmpeg_command(self, cmd):
         """Process ffmpeg command and replace localhost with portal URL"""
         parsed = urlparse(self.portal_url)
@@ -159,7 +159,7 @@ class StalkerToM3U:
 
             all_channels = self._parse_channels_from_response(data)
             channels = []
-            
+
             for ch in all_channels:
                 processed_channel = self._process_channel_data(ch)
                 if processed_channel:
@@ -192,7 +192,7 @@ class StalkerToM3U:
         """Pobiera odpowiedź z API"""
         api_url = self.get_api_url()
         params = self._build_stream_params(channel_id)
-        
+
         response = self.session.get(
             api_url,
             headers=self.headers,
@@ -200,7 +200,7 @@ class StalkerToM3U:
             cookies=self.cookies,
             timeout=15,
         )
-        
+
         data = response.json()
         print(f"Debug - stream URL response: {data}")
         print(f"Debug - raw cmd from response: {data.get('js', 'NO JS FIELD')}")
@@ -219,22 +219,22 @@ class StalkerToM3U:
         """Wyciąga URL z odpowiedzi API"""
         if "js" not in data:
             return None
-            
+
         cmd = data["js"]
-        
+
         if isinstance(cmd, str):
             return self._extract_url_from_string(cmd)
-            
+
         if isinstance(cmd, dict) and "cmd" in cmd:
             return self._extract_url_from_string(cmd["cmd"])
-            
+
         return None
 
     def _extract_url_from_string(self, text):
         """Wyciąga URL z tekstu"""
         if "http" not in text:
             return None
-            
+
         url_match = re.search(r"http\S+", text)
         return url_match.group(0) if url_match else None
 
@@ -263,7 +263,7 @@ class StalkerToM3U:
         """Extract direct URL from command"""
         # Check for direct play/live.php URL
         if "http://" in cmd and "play/live.php" in cmd:
-            url_match = re.search(r"http://[^\s]+", cmd)
+            url_match = re.search(r"http://\S+", cmd)
             if url_match:
                 return url_match.group(0)
 
@@ -275,7 +275,7 @@ class StalkerToM3U:
 
     def _convert_localhost_to_portal_url(self, cmd):
         """Convert localhost URL to portal URL"""
-        url_match = re.search(r"ffmpeg (http://[^\s]+)", cmd)
+        url_match = re.search(r"ffmpeg (http://\S+)", cmd)
         if not url_match:
             return None
 
@@ -332,8 +332,8 @@ class StalkerToM3U:
 
         real_cmd = data["js"]["cmd"]
         print(f"Debug - extracted real_cmd: {real_cmd}")  # Debug
-        
-        url_match = re.search(r"http[^\s]+", real_cmd)
+
+        url_match = re.search(r"http\S+", real_cmd)
         if url_match:
             final_url = url_match.group(0)
             print(f"Debug - final extracted URL: {final_url}")  # Debug
@@ -346,7 +346,7 @@ class StalkerToM3U:
         if "http://" not in cmd and "https://" not in cmd:
             return None
 
-        url_match = re.search(r"https?://[^\s]+", cmd)
+        url_match = re.search(r"https?://\S+", cmd)
         if url_match:
             alt_url = url_match.group(0)
             print(f"Debug - Trying alternative direct URL: {alt_url}")
@@ -364,13 +364,6 @@ class StalkerToM3U:
             "TVP",
             "POLSAT",
             "TVN",
-            "CANAL+",
-            "HBO",
-            "ALE KINO+",
-            "AXN",
-            "DISCOVERY",
-            "NATIONAL GEOGRAPHIC",
-            "FILMBOX",
             "TVN24",
             "TVN7",
             "TV4",
@@ -378,17 +371,11 @@ class StalkerToM3U:
             "TV PULS",
             "TVP INFO",
             "TVP SPORT",
-            "ELEVEN",
             "TVP 1",
             "TVP 2",
             "TVP HD",
             "POLSAT NEWS",
             "POLSAT SPORT",
-            "NICKELODEON",
-            "CARTOON",
-            "DISNEY",
-            "MINIMINI+",
-            "JIMJAM",
         ]
 
         polish_channels = []
@@ -434,31 +421,31 @@ class StalkerToM3U:
     def _test_channels_batch(self, test_channels, use_fallback):
         """Testuje wsadowo kanały i zwraca liczbę sukcesów"""
         success_count = 0
-        
+
         for i, ch in enumerate(test_channels, 1):
             if self._test_single_channel(ch, i, len(test_channels), use_fallback):
                 success_count += 1
             time.sleep(0.5)
-            
+
         return success_count
 
     def _test_single_channel(self, ch, current_index, total_count, use_fallback):
         """Testuje pojedynczy kanał i zwraca True jeśli sukces"""
         name = ch.get("name", "Unknown")
         cmd = ch.get("cmd", "")
-        
+
         safe_name = self._sanitize_channel_name(name)
         print(f"[{current_index}/{total_count}] Testowanie: {safe_name}")
-        
+
         if not cmd:
             print("  [ERROR] Brak komendy dla kanału")
             return False
-            
+
         real_url = self.get_real_stream_url(cmd)
         if not real_url:
             print("  [ERROR] Nie można uzyskać prawdziwego URL")
             return False
-            
+
         print(f"  URL: {real_url[:60]}...")
         return self._test_stream_url(real_url, use_fallback)
 
@@ -479,12 +466,18 @@ class StalkerToM3U:
     def _test_with_ffprobe(self, real_url):
         """Testuje strumień używając ffprobe"""
         cmd_ffprobe = [
-            "ffprobe", "-v", "error", "-show_entries", "stream=codec_type",
-            "-of", "default=noprint_wrappers=1:nokey=1", real_url
+            "ffprobe",
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=codec_type",
+            "-of",
+            "default=noprint_wrappers=1:nokey=1",
+            real_url,
         ]
-        
+
         result = subprocess.run(cmd_ffprobe, capture_output=True, text=True, timeout=10)
-        
+
         if result.returncode == 0 and ("video" in result.stdout or "audio" in result.stdout):
             print("  [OK] Strumień dostępny i odtwarzalny")
             return True
@@ -512,16 +505,16 @@ class StalkerToM3U:
         """Testuje URL używając standardowych żądań HTTP"""
         try:
             response = requests.head(real_url, timeout=8, allow_redirects=True)
-            
+
             if response.status_code != 200:
                 print(f"  [FAIL] URL nie odpowiada (status: {response.status_code})")
                 return False
-                
+
             if not self._is_valid_content_type(response):
                 return False
-                
+
             return self._test_stream_data(real_url, response)
-            
+
         except Exception as e:
             print(f"  [FAIL] Błąd połączenia: {str(e)[:50]}")
             return False
@@ -530,10 +523,15 @@ class StalkerToM3U:
         """Sprawdza czy Content-Type jest odpowiedni dla strumienia wideo"""
         content_type = response.headers.get("Content-Type", "").lower()
         video_types = [
-            "video/mp4", "video/mpeg", "video/avi", "video/x-matroska",
-            "application/octet-stream", "video/mp2t", "application/x-mpegURL"
+            "video/mp4",
+            "video/mpeg",
+            "video/avi",
+            "video/x-matroska",
+            "application/octet-stream",
+            "video/mp2t",
+            "application/x-mpegURL",
         ]
-        
+
         if not any(vt in content_type for vt in video_types):
             print(f"  [FAIL] Zły Content-Type: {content_type}")
             return False
@@ -542,7 +540,7 @@ class StalkerToM3U:
     def _test_stream_data(self, real_url, head_response):
         """Testuje dane strumienia"""
         content_length = head_response.headers.get("Content-Length", "0")
-        
+
         if content_length != "0":
             return self._test_stream_sample(real_url)
         else:
@@ -554,18 +552,18 @@ class StalkerToM3U:
         try:
             sample_response = requests.get(real_url, timeout=8, stream=True)
             sample_data = next(sample_response.iter_content(512), b"")
-            
+
             if len(sample_data) == 0:
                 print("  [FAIL] Brak danych w strumieniu")
                 return False
-                
+
             if self._is_html_error(sample_data):
                 print("  [FAIL] To jest plik HTML/XML, nie strumień wideo")
                 return False
             else:
                 print(f"  [OK] Strumień z danymi (status: {sample_response.status_code}, {len(sample_data)} bytes)")
                 return True
-                
+
         except Exception as e:
             print(f"  [FAIL] Błąd pobierania próbki: {str(e)[:50]}")
             return False
@@ -573,54 +571,49 @@ class StalkerToM3U:
     def _is_html_error(self, sample_data):
         """Sprawdza czy próbka danych to błąd HTML/XML"""
         data_start = sample_data[:100].strip()
-        return (
-            data_start.startswith(b"<!DOCTYPE") or
-            data_start.startswith(b"<html") or
-            data_start.startswith(b"<?xml")
-        )
+        return data_start.startswith(b"<!DOCTYPE") or data_start.startswith(b"<html") or data_start.startswith(b"<?xml")
 
     def _build_proxy_url(self, original_url, proxy_server):
         """Buduje URL z serwerem proxy"""
         from urllib.parse import urlparse
-        
+
         parsed = urlparse(original_url)
         path = parsed.path
         query = parsed.query
-        
+
         proxy_url = f"{proxy_server}{path}"
         if query:
             proxy_url += f"?{query}"
         return proxy_url
 
-    
     def _test_single_url(self, url, proxy_server=None):
         """Testuje pojedynczy URL i zwraca (success, message)"""
         try:
             response = self.session.head(url, timeout=8, allow_redirects=True)
-            
+
             if response.status_code != 200:
                 return False, None
-                
+
             if not self._is_valid_content_type(response):
                 return False, None
-                
+
             # Pobierz próbkę danych
             try:
                 sample_response = self.session.get(url, timeout=12, stream=True)
                 sample_data = next(sample_response.iter_content(1024), b"")
-                
+
                 if len(sample_data) == 0:
                     return False, None
-                    
+
                 if self._is_html_error(sample_data):
                     return False, None
-                    
+
                 server_name = "Oryginalny" if proxy_server is None else proxy_server
                 return True, f"Działa z serwerem: {server_name}"
-                
+
             except Exception:
                 return False, None
-                
+
         except Exception:
             return False, None
 
@@ -643,11 +636,8 @@ class StalkerToM3U:
         for proxy_server in proxy_servers:
             test_url = self._build_proxy_url(url, proxy_server) if proxy_server else url
             success, message = self._test_single_url(test_url, proxy_server)
-            
+
             if success:
                 return True, message
 
         return False, "Żaden serwer proxy nie działa"
-
-
-
